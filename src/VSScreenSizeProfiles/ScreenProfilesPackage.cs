@@ -59,7 +59,7 @@ namespace devcoach.Tools.ScreenProfiles
     public static WindowEvents WindowEvents { get; private set; }
     /////////////////////////////////////////////////////////////////////////////
     // Overridden Package Implementation
-    
+
     #region Initialize()
 
     /// <summary>
@@ -143,7 +143,7 @@ namespace devcoach.Tools.ScreenProfiles
       bar.Text = "Saved current screen layout";
       bar.Highlight(true);
       ExportSettings(GetWindowLayoutIdentifier());
-    } 
+    }
     #endregion
 
     #region GetWindowLayoutIdentifier()
@@ -192,37 +192,23 @@ namespace devcoach.Tools.ScreenProfiles
     {
       if (string.IsNullOrWhiteSpace(theme)) return false;
 
-      using (var hkcu = Registry.CurrentUser)
+      var vsSettingsFile = GetSettingsFile(theme);
+
+
+      if (!File.Exists(vsSettingsFile))
       {
-
-        using (var vs =
-            hkcu.OpenSubKey(
-              @"Software\Microsoft\VisualStudio\" + Application.Version))
-        {
-          if (vs == null) return false;
-
-          var visualStudioLocation =
-              vs.GetValue("VisualStudioLocation");
-          var vsSettingsFile =
-              Path.Combine(
-                  (string)visualStudioLocation,
-                  "Settings",
-                  string.Concat(theme, ".vssettings"));
-
-          if (!File.Exists(vsSettingsFile))
-          {
-            Trace.WriteLine(
-              "The theme settings file " + vsSettingsFile + " does not exist!");
-            return false;
-          }
-
-          Application.DTE.ExecuteCommand(
-              "Tools.ImportandExportSettings",
-              string.Concat("/import:\"", vsSettingsFile, "\""));
-        }
+        Trace.WriteLine(
+          "The theme settings file " + vsSettingsFile + " does not exist!");
+        return false;
       }
+
+      Application.DTE.ExecuteCommand(
+          "Tools.ImportandExportSettings",
+          string.Concat("/import:\"", vsSettingsFile, "\""));
+
+
       return true;
-    } 
+    }
     #endregion
 
     #region ExportSettings()
@@ -238,7 +224,7 @@ namespace devcoach.Tools.ScreenProfiles
 
       StipSettingsFileForWindowLayout(vsSettingsFile);
 
-    } 
+    }
     #endregion
 
     #region GetSettingsFile()
@@ -261,7 +247,7 @@ namespace devcoach.Tools.ScreenProfiles
                string.Concat(theme, ".vssettings"));
         }
       }
-    } 
+    }
     #endregion
 
     #region StipSettingsFileForWindowLayout()
@@ -323,7 +309,7 @@ namespace devcoach.Tools.ScreenProfiles
         }
       }
       doc.Save(vsSettingsFile);
-    } 
+    }
     #endregion
   }
 }
