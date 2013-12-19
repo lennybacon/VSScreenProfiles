@@ -98,10 +98,9 @@ namespace devcoach.Tools.ScreenProfiles
       Window window, int top, int left, int width, int height)
     {
       var key = GetWindowLayoutIdentifier();
+      var bar = Application.StatusBar;
       if (window.Type == vsWindowType.vsWindowTypeMainWindow)
       {
-        var bar = Application.StatusBar;
-
         if (!string.IsNullOrWhiteSpace(_lastImported) &&
             _lastImported.Equals(key, StringComparison.OrdinalIgnoreCase))
         {
@@ -123,6 +122,8 @@ namespace devcoach.Tools.ScreenProfiles
         {
           // Update existing settings on resize etc...
           ExportSettings(key);
+          bar.Text = "Updated screen layout";
+          bar.Highlight(true);
         }
       }
     }
@@ -217,12 +218,18 @@ namespace devcoach.Tools.ScreenProfiles
       if (string.IsNullOrWhiteSpace(theme)) return;
 
       var vsSettingsFile = GetSettingsFile(theme);
-
-      Application.DTE.ExecuteCommand(
-        "Tools.ImportandExportSettings",
-        string.Concat("/export:\"", vsSettingsFile, "\""));
-
-      StipSettingsFileForWindowLayout(vsSettingsFile);
+      try
+      {
+        Application.DTE.ExecuteCommand(
+          "Tools.ImportandExportSettings",
+          string.Concat("/export:\"", vsSettingsFile, "\""));
+        StripSettingsFileForWindowLayout(vsSettingsFile);
+      }
+      catch (Exception ex)
+      {
+        Trace.WriteLine(ex.ToString());
+      }
+      
 
     }
     #endregion
@@ -250,8 +257,8 @@ namespace devcoach.Tools.ScreenProfiles
     }
     #endregion
 
-    #region StipSettingsFileForWindowLayout()
-    private static void StipSettingsFileForWindowLayout(string vsSettingsFile)
+    #region StripSettingsFileForWindowLayout()
+    private static void StripSettingsFileForWindowLayout(string vsSettingsFile)
     {
       var doc = new XmlDocument();
       doc.Load(vsSettingsFile);
